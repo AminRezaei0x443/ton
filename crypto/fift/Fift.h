@@ -42,12 +42,12 @@ struct Fift {
 
   td::Result<int> interpret_file(std::string fname, std::string current_dir, bool interactive = false);
   td::Result<int> interpret_istream(std::istream& stream, std::string current_dir, bool interactive = true);
+  td::Result<int> do_interpret(IntCtx& ctx, bool is_interactive = false);
 
   Config& config();
 
  private:
   Config config_;
 
-  td::Result<int> do_interpret(IntCtx& ctx, bool is_interactive = false);
 };
 }  // namespace fift
