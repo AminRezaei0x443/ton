@@ -12,6 +12,9 @@
 #include "td/utils/port/path.h"
 
 #include "common.h"
+#include "StringLog.h"
+
+auto memLog = new StringLog();
 
 void parse_include_path_set(std::string include_path_set, std::vector<std::string>& res) {
   td::Parser parser(include_path_set);
@@ -24,7 +27,11 @@ void parse_include_path_set(std::string include_path_set, std::vector<std::strin
   }
 }
 
-extern "C" __declspec(dllexport) void* fift_init(char* lib_path) {  
+extern "C" __declspec(dllexport) void* fift_init(char* lib_path) {
+    td::log_interface = memLog;
+    SET_VERBOSITY_LEVEL(verbosity_DEBUG);
+    memLog->clear();
+
     std::vector<std::string> source_include_path;
     std::string fift_libs(lib_path);
     
@@ -67,7 +74,7 @@ extern "C" __declspec(dllexport) char* fift_eval(void* fift_pointer, char* code,
     fift::Fift* fift = (fift::Fift*) fift_pointer;
     std::stringstream ss(code);
     std::string c_dir(current_dir);
-    fift::IntCtx ctx(ss, "<input>", c_dir, false);
+    fift::IntCtx ctx(ss, "<input>", c_dir, true);
     std::string v(stack_data, len);
     auto stack_j_r = td::json_decode(v);
     auto stack_j = stack_j_r.move_as_ok();
@@ -81,7 +88,23 @@ extern "C" __declspec(dllexport) char* fift_eval(void* fift_pointer, char* code,
       ctx.stack.push(entry);
     }
     auto i = fift->do_interpret(ctx, false);
-    auto res = stack2json(td::make_ref<vm::Stack>(ctx.stack));
-    auto result = res.move_as_ok();
-    return strdup(result.c_str());
+    std::string res = R"({ "status":)";
+
+    if(i.is_error()){
+      res += R"("error")";
+      res += R"(,"message": ")";
+      std::ostringstream os;
+      ctx.print_error_backtrace(os);
+      LOG(ERROR) << os.str();
+      res.append(i.error().message().str());
+      res += R"(")";
+      res += R"(})";
+    }else{
+      auto resV = stack2json(td::make_ref<vm::Stack>(ctx.stack));
+      auto result = resV.move_as_ok();
+      res += R"("ok", "stack":)";
+      res.append(result);
+      res += R"(})";
+    }
+    return strdup(res.c_str());
 }
