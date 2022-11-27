@@ -2,7 +2,6 @@ name: C/C++ CI macOS-10.15 Compile
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   build:
