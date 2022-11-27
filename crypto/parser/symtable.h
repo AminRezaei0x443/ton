@@ -101,7 +101,14 @@ class SymTableBase {
   Symbol* get_keyword(int i) const {
     return ((unsigned)i < (unsigned)max_kw_idx) ? sym_table[keywords[i]].get() : nullptr;
   }
-
+  void clear() {
+    std::memset(keywords, 0, sizeof(keywords));
+    def_kw = 0x100;
+    def_sym = 0;
+    for(unsigned int i = 0; i < p; i++){
+      sym_table[i] = std::unique_ptr<Symbol>{};
+    }
+  }
  protected:
   sym_idx_t gen_lookup(std::string str, int mode = 0, sym_idx_t idx = 0);
 };

@@ -833,6 +833,8 @@ bool parse_source(std::istream* is, const src::FileDescr* fdescr);
 bool parse_source_file(const char* filename, src::Lexem lex = {});
 bool parse_source_stdin();
 
+extern std::vector<const src::FileDescr*> source_fdescr;
+extern std::vector<std::string> source_files;
 extern std::stack<src::SrcLocation> inclusion_locations;
 
 /*

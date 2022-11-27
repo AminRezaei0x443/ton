@@ -295,7 +295,7 @@ set_target_properties(fift-lib PROPERTIES OUTPUT_NAME fift)
 
 
 add_library(fift-ex SHARED fift-ex/fift-exec.cpp fift-ex/common.h fift-ex/common.cpp fift-ex/StringLog.h)
-target_link_libraries(fift-ex PUBLIC fift-lib ton_crypto terminal ton_db tdutils ton_block)
+target_link_libraries(fift-ex PUBLIC fift-lib func-lib ton_crypto terminal ton_db tdutils ton_block)
 set_target_properties(fift-ex PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/fift-ex/fift-ex-lib_export_list")
 
 add_executable(fift fift/fift-main.cpp)
@@ -318,6 +318,14 @@ target_include_directories(func PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_
 target_link_libraries(func PUBLIC ton_crypto src_parser git ton_block)
 if (WINGETOPT_FOUND)
   target_link_libraries_system(func wingetopt)
+endif()
+
+add_library(func-lib ${FUNC_LIB_SOURCE})
+target_include_directories(func-lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_link_libraries(func-lib PUBLIC ton_crypto src_parser git ton_block)
+set_target_properties(func-lib PROPERTIES OUTPUT_NAME func)
+if (WINGETOPT_FOUND)
+  target_link_libraries_system(func-lib wingetopt)
 endif()
 
 if (USE_EMSCRIPTEN)

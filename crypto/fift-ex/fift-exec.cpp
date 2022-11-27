@@ -5,6 +5,7 @@
 #include "td/utils/PathView.h"
 #include "td/utils/JsonBuilder.h"
 #include "fift/words.h"
+#include "vm/cp0.h"
 
 #include "td/utils/logging.h"
 #include "td/utils/misc.h"
@@ -13,6 +14,15 @@
 
 #include "common.h"
 #include "StringLog.h"
+
+#include "func/func.h"
+#include "git.h"
+#include "td/utils/JsonBuilder.h"
+#include "fift/utils.h"
+#include "td/utils/base64.h"
+#include <sstream>
+#include <iomanip>
+
 
 auto memLog = new StringLog();
 
@@ -107,4 +117,98 @@ extern "C" __declspec(dllexport) char* fift_eval(void* fift_pointer, char* code,
       res += R"(})";
     }
     return strdup(res.c_str());
+}
+
+extern "C" __declspec(dllexport) char* vm_exec(int len, char* _data) {
+  // Init logging
+  td::log_interface = memLog;
+  SET_VERBOSITY_LEVEL(verbosity_DEBUG);
+  memLog->clear();
+
+  std::string config(_data, len);
+
+  auto res = vm_exec_from_config(config, []() -> std::string { return memLog->get_string(); });
+
+  if (res.is_error()) {
+    std::string result;
+    result += "{";
+    result +=  R"("ok": false,)";
+    result +=  R"("error": ")" + res.move_as_error().message().str() + R"(")";
+    result += "}";
+
+    return strdup(result.c_str());
+  }
+
+  return strdup(res.move_as_ok().c_str());
+}
+
+td::Result<std::string> compile_internal(char* config_json, int len) {
+  std::string v(config_json, len);
+  TRY_RESULT(input_json, td::json_decode(v))
+  auto &obj = input_json.get_object();
+
+  TRY_RESULT(opt_level, td::get_json_object_int_field(obj, "optLevel", false));
+  TRY_RESULT(sources_obj, td::get_json_object_field(obj, "sources", td::JsonValue::Type::Array, false));
+
+  auto &sources_arr = sources_obj.get_array();
+
+  std::vector<std::string> sources;
+
+  for (auto &item : sources_arr) {
+    sources.push_back(item.get_string().str());
+  }
+
+  funC::opt_level = std::max(0, opt_level);
+  funC::program_envelope = true;
+  funC::verbosity = 0;
+  funC::indent = 1;
+
+  std::ostringstream outs, errs;
+  auto compile_res = funC::func_proceed(sources, outs, errs);
+
+  if (compile_res != 0) {
+    return td::Status::Error(std::string("Func compilation error: ") + errs.str());
+  }
+
+  td::JsonBuilder result_json;
+  auto result_obj = result_json.enter_object();
+  result_obj("status", "ok");
+  result_obj("fiftCode", escape_json(outs.str()));
+  result_obj.leave();
+
+  outs.clear();
+  errs.clear();
+
+  return result_json.string_builder().as_cslice().str();
+}
+
+extern "C" {
+
+__declspec(dllexport) const char* ton_version() {
+  auto version_json = td::JsonBuilder();
+  auto obj = version_json.enter_object();
+  obj("funcVersion", funC::func_version);
+  obj("funcFiftLibCommitHash", GitMetadata::CommitSHA1());
+  obj("funcFiftLibCommitDate", GitMetadata::CommitDate());
+  obj.leave();
+  return strdup(version_json.string_builder().as_cslice().c_str());
+}
+
+__declspec(dllexport) const char *func_compile(char *config_json, int len) {
+  auto res = compile_internal(config_json, len);
+
+  if (res.is_error()) {
+    auto result = res.move_as_error();
+    auto error_res = td::JsonBuilder();
+    auto error_o = error_res.enter_object();
+    error_o("status", "error");
+    error_o("message", result.message().str());
+    error_o.leave();
+    return strdup(error_res.string_builder().as_cslice().c_str());
+  }
+
+  auto res_string = res.move_as_ok();
+
+  return strdup(res_string.c_str());
+}
 }

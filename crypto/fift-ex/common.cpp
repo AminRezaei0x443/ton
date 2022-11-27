@@ -160,7 +160,7 @@ td::Result<std::string> stack_entry_to_json(vm::StackEntry se) {
     return R"({ "type": "null" })";
   }
   if (se.is_tuple()) {
-    std::string res = R"({ "type": "tuple", "value": [)";
+    std::string res = R"({ "type": "tuple", "value": [ )";
 
     auto tuple = se.as_tuple();
 
@@ -195,7 +195,7 @@ td::Result<std::string> stack2json(vm::Ref<vm::Stack> stack) {
 
 td::Result<std::string> run_vm(td::Ref<vm::Cell> code, td::Ref<vm::Cell> data, td::JsonArray &stack_array,
                                td::JsonObject &c7_register, int function_selector,
-                               std::function<std::string()> getLogs) {
+                               std::function<std::string()> getLogs, bool debug) {
   vm::init_op_cp0(true);
 
   TRY_RESULT(stack, json_to_stack(stack_array));
@@ -207,6 +207,9 @@ td::Result<std::string> run_vm(td::Ref<vm::Cell> code, td::Ref<vm::Cell> data, t
   long long gas_limit = vm::GasLimits::infty;
   vm::GasLimits gas{gas_limit};
   LOG(DEBUG) << "creating VM";
+
+  vm::set_debug_enabled(debug);
+  
   vm::VmState vm{std::move(code), std::move(stack), gas, 1, data, vm::VmLog()};
 
   vm.set_c7(c7_data.as_tuple());
@@ -294,5 +297,5 @@ td::Result<std::string> vm_exec_from_config(std::string config, std::function<st
   TRY_RESULT(code_cell, code_boc->load_cell());
 
   return run_vm(code_cell.data_cell, data_cell.data_cell, initial_stack_array, c7_register.get_object(),
-                function_selector, getLogs);
+                function_selector, getLogs, debug);
 }

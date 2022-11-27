@@ -1,2 +1,5 @@
 _fift_init
 _fift_eval
+_vm_exec
+_func_compile
+_ton_version

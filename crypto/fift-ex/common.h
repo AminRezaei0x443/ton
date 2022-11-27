@@ -9,6 +9,7 @@
 #include "vm/cp0.h"
 #include "vm/boc.h"
 #include "vm/stack.hpp"
+#include "vm/debugops.h"
 #include "crypto/block/block.h"
 #include "td/utils/base64.h"
 #include "td/utils/ScopeGuard.h"

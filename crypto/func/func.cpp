@@ -188,6 +188,34 @@ int func_proceed(const std::vector<std::string> &sources, std::ostream &outs, st
     funC::indent = 1;
   }
 
+  /**
+   * NOTE: Here we go ahead to clear the symbol table
+   * Not a usual act, but we need it to be able to call func_proceed
+   * multiple times
+   */
+
+  sym::symbols.clear();
+  for(int i = 0; i < sym::symbols.hprime; i++){
+    sym::sym_def[i] = nullptr;
+    sym::global_sym_def[i] = nullptr;
+  }
+  sym::symbol_stack.clear();
+  sym::scope_opened_at.clear();
+  sym::scope_level = 0;
+
+  while(!funC::inclusion_locations.empty()){
+    funC::inclusion_locations.pop();
+  }
+  funC::source_files.clear();
+  funC::source_fdescr.clear();
+
+  funC::glob_func_cnt = 0;
+  funC::undef_func_cnt = 0;
+  funC::glob_var_cnt = 0;
+  funC::glob_func.clear();
+  funC::glob_func.clear();
+  funC::generated_from = "";
+
   funC::define_keywords();
   funC::define_builtins();
 

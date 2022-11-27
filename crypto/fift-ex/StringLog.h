@@ -7,6 +7,7 @@
 #define TON_STRINGLOG_H
 
 #include <thread>
+#include <mutex>
 
 
 class StringLog : public td::LogInterface {
