@@ -33,7 +33,8 @@ jobs:
       run: |
         ls build
         ls build/crypto
-        rsync -r --exclude 'CMakeFiles' --exclude 'Makefile' --exclude '*.a' --exclude '*.cmake' --exclude 'third-party' --exclude 'test-*' --exclude '*.cc' --exclude '*.json' --exclude '*.txt' build/* artifacts/
+        mkdir artifacts
+        cp build/crypto/libfift-ex.dylib artifacts/rift-lib.dylib
 
     - name: Upload artifacts
       uses: actions/upload-artifact@master
