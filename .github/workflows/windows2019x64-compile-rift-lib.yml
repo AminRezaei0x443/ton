@@ -69,5 +69,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@master
         with:
-          name: ton-win64-binaries
+          name: rift-lib-win64
           path: artifacts
