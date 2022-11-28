@@ -32,7 +32,7 @@ jobs:
     - name: find & copy binaries
       run: |
         mkdir artifacts-${{ matrix.os }}
-        cp build-${{ matrix.os }}/crypto/fift-ex.so artifacts-${{ matrix.os }}/rift-lib.so
+        cp build-${{ matrix.os }}/crypto/libfift-ex.so artifacts-${{ matrix.os }}/rift-lib.so
     - name: Upload artifacts
       uses: actions/upload-artifact@master
       with:
