@@ -24,6 +24,13 @@
 #include <iomanip>
 
 
+#if _WIN32
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT 
+#endif
+
+
 auto memLog = new StringLog();
 
 void parse_include_path_set(std::string include_path_set, std::vector<std::string>& res) {
@@ -37,7 +44,7 @@ void parse_include_path_set(std::string include_path_set, std::vector<std::strin
   }
 }
 
-extern "C" __declspec(dllexport) void* fift_init(char* lib_path) {
+extern "C" DLL_EXPORT void* fift_init(char* lib_path) {
     td::log_interface = memLog;
     SET_VERBOSITY_LEVEL(verbosity_DEBUG);
     memLog->clear();
@@ -80,7 +87,7 @@ extern "C" __declspec(dllexport) void* fift_init(char* lib_path) {
     return fift;
 }
 
-extern "C" __declspec(dllexport) char* fift_eval(void* fift_pointer, char* code, char* current_dir, char* stack_data, int len) {
+extern "C" DLL_EXPORT char* fift_eval(void* fift_pointer, char* code, char* current_dir, char* stack_data, int len) {
     fift::Fift* fift = (fift::Fift*) fift_pointer;
     std::stringstream ss(code);
     std::string c_dir(current_dir);
@@ -119,7 +126,7 @@ extern "C" __declspec(dllexport) char* fift_eval(void* fift_pointer, char* code,
     return strdup(res.c_str());
 }
 
-extern "C" __declspec(dllexport) char* vm_exec(int len, char* _data) {
+extern "C" DLL_EXPORT char* vm_exec(int len, char* _data) {
   // Init logging
   td::log_interface = memLog;
   SET_VERBOSITY_LEVEL(verbosity_DEBUG);
@@ -184,7 +191,7 @@ td::Result<std::string> compile_internal(char* config_json, int len) {
 
 extern "C" {
 
-__declspec(dllexport) const char* ton_version() {
+DLL_EXPORT const char* ton_version() {
   auto version_json = td::JsonBuilder();
   auto obj = version_json.enter_object();
   obj("funcVersion", funC::func_version);
@@ -194,7 +201,7 @@ __declspec(dllexport) const char* ton_version() {
   return strdup(version_json.string_builder().as_cslice().c_str());
 }
 
-__declspec(dllexport) const char *func_compile(char *config_json, int len) {
+DLL_EXPORT const char *func_compile(char *config_json, int len) {
   auto res = compile_internal(config_json, len);
 
   if (res.is_error()) {
