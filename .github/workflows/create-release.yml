@@ -53,5 +53,5 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: "release/*.*"
-        tag: ${{ github.event.inputs.environment }}
+        tag: ${{ github.event.inputs.release_tag }}
         commit: master
