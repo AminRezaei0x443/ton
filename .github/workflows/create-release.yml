@@ -1,0 +1,37 @@
+name: Release lib-rift
+
+on: [workflow_dispatch]
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Obtain lib-rift (Ubuntu)
+      id: download-artifact-linux
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: ubuntu-compile-rift-lib.yml
+        workflow_conclusion: success
+        branch: master
+        if_no_artifact_found: fail
+
+    - name: Obtain lib-rift (Win64)
+      id: download-artifact-win
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: windows2019x64-compile-rift-lib.yml
+        workflow_conclusion: success
+        branch: master
+        if_no_artifact_found: fail
+
+    - name: Obtain lib-rift (macOS)
+      id: download-artifact-mac
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: macos-10.15-compile-rift.yml
+        workflow_conclusion: success
+        branch: master
+        if_no_artifact_found: fail
+    - name: Gather Artifacts
+      run: |
+        ls -R
