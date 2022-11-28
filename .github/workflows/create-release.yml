@@ -1,10 +1,18 @@
 name: Release lib-rift
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Define release tag'     
+        required: true
 
 jobs:
   release:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
     steps:
     - name: Obtain lib-rift (Ubuntu)
       id: download-artifact-linux
@@ -34,4 +42,16 @@ jobs:
         if_no_artifact_found: fail
     - name: Gather Artifacts
       run: |
-        ls -R
+        mkdir release
+        cp rift-lib-macos/rift-lib.dylib release/rift-lib-macOS.dylib
+        cp rift-lib-ubuntu-18.04/rift-lib.so release/rift-lib-ubuntu-18.04.so
+        cp rift-lib-ubuntu-20.04/rift-lib.so release/rift-lib-ubuntu-20.04.so
+        cp rift-lib-ubuntu-22.04/rift-lib.so release/rift-lib-ubuntu-22.04.so
+        cp rift-lib-win64/rift-lib.dll release/rift-lib-win64.dll
+        ls -R 
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "release/*.*"
+        tag: ${{ github.event.inputs.environment }}
+        commit: master
