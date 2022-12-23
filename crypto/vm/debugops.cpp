@@ -76,15 +76,23 @@ int exec_dump_stack(VmState* st) {
   Stack& stack = st->get_stack();
   int d = stack.depth();
   std::cerr << "#DEBUG#: stack(" << d << " values) : ";
+  VM_LOG(st) << "#DEBUG#: stack(" << d << " values) : ";
   if (d > 255) {
     std::cerr << "... ";
+    VM_LOG(st) << "... ";
     d = 255;
   }
   for (int i = d; i > 0; i--) {
-    stack[i - 1].print_list(std::cerr);
+    // stack[i - 1].print_list(std::cerr);
+    std::stringstream ss;
+    stack[i - 1].print_list(ss);
+    std::cerr << ss.str();
     std::cerr << ' ';
+    VM_LOG(st) << ss.str();
+    VM_LOG(st) << ' ';
   }
   std::cerr << std::endl;
+  VM_LOG(st) << "\n";
   return 0;
 }
 
@@ -114,7 +122,8 @@ int exec_dump_string(VmState* st) {
   Stack& stack = st->get_stack();
 
   if (stack.depth() > 0){
-    auto cs = stack[0].as_slice();
+    auto cs = stack.pop_cellslice();
+    // auto cs = stack[0].as_slice();
 
     if (cs.not_null()) {  // wanted t_slice
       auto size = cs->size();
@@ -127,16 +136,20 @@ int exec_dump_string(VmState* st) {
         std::string s{tmp, tmp + cnt};
 
         std::cerr << "#DEBUG#: " << s << std::endl;
+        VM_LOG(st) << "#DEBUG#: " << s << "\n";
       }
       else {
         std::cerr << "#DEBUG#: slice contains not valid bits count" << std::endl;
+        VM_LOG(st) << "#DEBUG#: slice contains not valid bits count" << "\n";
       }
 
     } else {
       std::cerr << "#DEBUG#: is not a slice" << std::endl;
+        VM_LOG(st) << "#DEBUG#: is not a slice" << "\n";
     }
   } else {
     std::cerr << "#DEBUG#: s0 is absent" << std::endl;
+    VM_LOG(st) << "#DEBUG#: s0 is absent" << "\n";
   }
 
   return 0;

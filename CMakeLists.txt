@@ -103,7 +103,8 @@ option(TONLIB_ENABLE_JNI "Use \"ON\" to enable JNI-compatible TonLib API.")
 option(TON_USE_ASAN "Use \"ON\" to enable AddressSanitizer." OFF)
 option(TON_USE_TSAN "Use \"ON\" to enable ThreadSanitizer." OFF)
 option(TON_USE_UBSAN "Use \"ON\" to enable UndefinedBehaviorSanitizer." OFF)
-set(TON_ARCH "native" CACHE STRING "Architecture, will be passed to -march=")
+# set(TON_ARCH "native" CACHE STRING "Architecture, will be passed to -march=")
+set(TON_ARCH "x86-64" CACHE STRING "Architecture, will be passed to -march=")
 
 #BEGIN M1 support
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
